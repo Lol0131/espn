@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NFL AI Stats</title>
+</head>
+<body>
+    <h2>NFL Defense Stats Tracker</h2>
+    <button onclick="fetchData()">Start</button>
+    <p id="status"></p>
+
+    <script>
+        async function fetchData() {
+            document.getElementById("status").innerText = "Fetching data...";
+            const response = await fetch("/run", { method: "POST" });
+            if (response.ok) {
+                document.getElementById("status").innerHTML = '<a href="/download">Download Excel File</a>';
+            } else {
+                const text = await response.text();
+                document.getElementById("status").innerText = "Error running task: " + text;
+            }
+        }
+    </script>
+</body>
+</html>
