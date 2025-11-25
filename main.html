@@ -1,24 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>NFL AI Stats</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL AI Defense Stats Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            font-weight: bold;
+            margin: 10px;
+        }
+
+        .button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .download-button {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+            display: none;
+            text-decoration: none;
+        }
+
+        .download-button:hover {
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.6);
+        }
+
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+        }
+
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+    </style>
 </head>
 <body>
-    <h2>NFL Defense Stats Tracker</h2>
-    <button onclick="fetchData()">Start</button>
-    <p id="status"></p>
+    <div class="container">
+        <h1>🏈 NFL AI Defense Stats Tracker</h1>
+        <p class="subtitle">Get AI-powered defensive analysis for all NFL teams</p>
+        
+        <button id="startButton" class="button" onclick="startAnalysis()">
+            Start Analysis & Download
+        </button>
+        
+        <a id="downloadButton" href="/download" class="button download-button" download>
+            📥 Download Excel File
+        </a>
+
+        <div id="status" class="status"></div>
+
+        <div class="info">
+            <strong>How it works:</strong><br>
+            1. Click "Start Analysis & Download" to fetch NFL defensive stats from ESPN<br>
+            2. AI analyzes each team's defensive performance<br>
+            3. Download the Excel file with all team summaries
+        </div>
+    </div>
 
     <script>
-        async function fetchData() {
-            document.getElementById("status").innerText = "Fetching data...";
-            const response = await fetch("/run", { method: "POST" });
-            if (response.ok) {
-                document.getElementById("status").innerHTML = '<a href="/download">Download Excel File</a>';
-            } else {
-                const text = await response.text();
-                document.getElementById("status").innerText = "Error running task: " + text;
+        async function startAnalysis() {
+            const startButton = document.getElementById('startButton');
+            const downloadButton = document.getElementById('downloadButton');
+            const status = document.getElementById('status');
+            
+            // Disable button and show loading
+            startButton.disabled = true;
+            status.className = 'status loading';
+            status.innerHTML = '<div class="spinner"></div><div style="margin-top: 10px;">Fetching data from ESPN and generating AI summaries... This may take a few minutes.</div>';
+            downloadButton.style.display = 'none';
+            
+            try {
+                const response = await fetch('/run', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    status.className = 'status success';
+                    status.innerHTML = '✅ Analysis complete! Click the button below to download your Excel file.';
+                    downloadButton.style.display = 'inline-block';
+                    startButton.disabled = false;
+                } else {
+                    status.className = 'status error';
+                    status.innerHTML = `❌ Error: ${data.message || 'Unknown error occurred'}`;
+                    startButton.disabled = false;
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = `❌ Error: ${error.message}`;
+                startButton.disabled = false;
             }
         }
+
+        // Auto-download when download button is clicked (if file is ready)
+        document.getElementById('downloadButton').addEventListener('click', function(e) {
+            // Let the browser handle the download naturally
+        });
     </script>
 </body>
 </html>
