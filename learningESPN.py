@@ -407,7 +407,7 @@ def fetch_and_save_nfl():
         return excel_filename
     
     except Exception as e:
-        error_msg = f"Error in fetch_and_save_nfl: {str(e)}"
+        error_msg = f"Error in fetch_and_save_nflp: {str(e)}"
         print(error_msg)
         import traceback
         traceback.print_exc()
